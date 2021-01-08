@@ -183,24 +183,31 @@ TYPED_TEST(nvjpegDecodeDecoupledAPITest, TestSingleTiffDecode4T) {
 }
 
 #if NVJPEG_VER_MAJOR >= 11
-class HwDecoderUtilizationTest : public ::testing::Test {
+/**
+ * GTest params:
+ * 1. bool - whether add `hw_decoder_load` parameter (true) or leave it default (false)
+ */
+class HwDecoderUtilizationTest : public ::testing::TestWithParam<bool> {
  public:
   void SetUp() final {
     dali::string list_root(testing::dali_extra_path() + "/db/single/jpeg");
 
-    pipeline_.AddOperator(
-            OpSpec("FileReader")
-                    .AddArg("device", "cpu")
-                    .AddArg("file_root", list_root)
-                    .AddOutput("compressed_images", "cpu")
-                    .AddOutput("labels", "cpu"));
-    auto decoder_spec =
-            OpSpec("ImageDecoder")
-                    .AddArg("device", "mixed")
-                    .AddArg("output_type", DALI_RGB)
-                    .AddArg("hw_decoder_load", .7f)
-                    .AddInput("compressed_images", "cpu")
-                    .AddOutput("images", "gpu");
+    pipeline_.AddOperator(OpSpec("FileReader")
+                              .AddArg("device", "cpu")
+                              .AddArg("file_root", list_root)
+                              .AddOutput("compressed_images", "cpu")
+                              .AddOutput("labels", "cpu"));
+    auto decoder_spec = GetParam() ? OpSpec("ImageDecoder")
+                                         .AddArg("device", "mixed")
+                                         .AddArg("output_type", DALI_RGB)
+                                         .AddArg("hw_decoder_load", .7f)
+                                         .AddInput("compressed_images", "cpu")
+                                         .AddOutput("images", "gpu")
+                                   : OpSpec("ImageDecoder")
+                                         .AddArg("device", "mixed")
+                                         .AddArg("output_type", DALI_RGB)
+                                         .AddInput("compressed_images", "cpu")
+                                         .AddOutput("images", "gpu");
     pipeline_.AddOperator(decoder_spec, decoder_name_);
 
     pipeline_.Build(outputs_);
@@ -208,10 +215,10 @@ class HwDecoderUtilizationTest : public ::testing::Test {
     auto node = pipeline_.GetOperatorNode(decoder_name_);
     if (!node->op->GetDiagnostic<bool>("using_hw_decoder")) {
       if (nvml::HasCuda11NvmlFunctions()) {
-          unsigned int device_count;
-          CUDA_CALL(nvmlDeviceGetCount_v2(&device_count));
-          for (unsigned int device_idx = 0; device_idx < device_count; device_idx++) {
-            auto info = nvml::GetDeviceInfo(device_idx);
+        unsigned int device_count;
+        CUDA_CALL(nvmlDeviceGetCount_v2(&device_count));
+        for (unsigned int device_idx = 0; device_idx < device_count; device_idx++) {
+          auto info = nvml::GetDeviceInfo(device_idx);
             std::cerr << "Device " << device_idx
                       << " brand " << info.type
                       << " cc_M " << info.cap_major
@@ -226,15 +233,16 @@ class HwDecoderUtilizationTest : public ::testing::Test {
     }
   }
 
-
   int batch_size_ = 47;
   Pipeline pipeline_{batch_size_, 1, 0, -1, false, 2, false};
   vector<std::pair<string, string>> outputs_ = {{"images", "gpu"}};
   std::string decoder_name_ = "Lorem Ipsum";
 };
 
+INSTANTIATE_TEST_SUITE_P(WithAndWithoutExplicitHwLoadParam, HwDecoderUtilizationTest,
+                         ::testing::Bool());
 
-TEST_F(HwDecoderUtilizationTest, UtilizationTest) {
+TEST_P(HwDecoderUtilizationTest, UtilizationTest) {
   this->pipeline_.RunCPU();
   this->pipeline_.RunGPU();
 
@@ -245,7 +253,7 @@ TEST_F(HwDecoderUtilizationTest, UtilizationTest) {
   EXPECT_EQ(nsamples_hw, 35) << "HW Decoder malfunction: incorrect number of images decoded in HW";
   EXPECT_EQ(nsamples_cuda, 12);
   EXPECT_EQ(nsamples_host, 0)
-                << "Image decoding malfuntion: all images should've been decoded by CUDA or HW";
+      << "Image decoding malfuntion: all images should've been decoded by CUDA or HW";
 }
 #endif
 

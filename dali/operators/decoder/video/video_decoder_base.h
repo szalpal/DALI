@@ -61,7 +61,7 @@ class DLL_PUBLIC VideoDecoderBase {
   TensorListShape<4> ReadOutputShape(int nframes, int batch_size) {
     // to do returns whole file shape, not subsequence
     TensorListShape<4> shape(batch_size);
-    for (size_t s = 0; s < batch_size; ++s) {
+    for (int s = 0; s < batch_size; ++s) {
       TensorShape<4> sample_shape;
       sample_shape[0] = nframes;
       sample_shape[1] = frames_decoders_[s]->Height();

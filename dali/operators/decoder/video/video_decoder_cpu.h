@@ -24,7 +24,8 @@
 
 namespace dali {
 
-class VideoDecoderCpu : public VideoDecoderBase<CPUBackend, FramesDecoder>, public Operator<CPUBackend> {
+class VideoDecoderCpu : public VideoDecoderBase<CPUBackend, FramesDecoder>,
+        public Operator<CPUBackend> {
   using VideoDecoderBase::DecodeSample;
 
  public:

@@ -45,7 +45,7 @@ class DLL_PUBLIC VideoDecoderBase {
   }
 
   TensorListShape<4> ReadOutputShape() {
-    //to do returns whole file shape, not subsequence
+    // to do returns whole file shape, not subsequence
     TensorListShape<4> shape(frames_decoders_.size());
     for (size_t s = 0; s < frames_decoders_.size(); ++s) {
       TensorShape<4> sample_shape;
@@ -59,7 +59,7 @@ class DLL_PUBLIC VideoDecoderBase {
   }
 
   TensorListShape<4> ReadOutputShape(int nframes, int batch_size) {
-    //to do returns whole file shape, not subsequence
+    // to do returns whole file shape, not subsequence
     TensorListShape<4> shape(batch_size);
     for (size_t s = 0; s < batch_size; ++s) {
       TensorShape<4> sample_shape;
@@ -71,6 +71,7 @@ class DLL_PUBLIC VideoDecoderBase {
     }
     return shape;
   }
+
 
   /**
    * @brief Decode sample with index `idx` to `output` tensor.
@@ -88,7 +89,8 @@ class DLL_PUBLIC VideoDecoderBase {
    * @param start_idx
    * @param num_frames
    */
-  void DecodeFrames(SampleView<OutBackend> output, int64_t sample_idx, int64_t start_idx, int64_t num_frames) {
+  void DecodeFrames(SampleView<OutBackend> output, int64_t sample_idx, int64_t start_idx,
+                    int64_t num_frames) {
     auto &frames_decoder = *frames_decoders_[sample_idx];
     int64_t frame_size = frames_decoder.FrameSize();
     uint8_t *output_data = output.template mutable_data<uint8_t>();
@@ -109,10 +111,12 @@ class DLL_PUBLIC VideoDecoderBase {
     return true;
 //    return frames_decoders_[sample_idx]->NextFrameIdx() != -1;
   }
-  int cnt=0;//to do remove
+
+
+  int cnt = 0;  // to do remove
 
   std::vector<std::unique_ptr<FramesDecoder>> frames_decoders_;
-  std::vector<bool> is_valid_;//to do refactor
+  std::vector<bool> is_valid_;  // to do refactor
 };
 
 }  // namespace dali

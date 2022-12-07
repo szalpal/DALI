@@ -372,12 +372,12 @@ void daliOutput(daliPipelineHandle *pipe_handle) {
   pipeline->Outputs(ws);
 }
 
-void daliOutputH(daliPipelineHandle *pipe_handle, int64_t& h) {
+
+void daliOutputH(daliPipelineHandle *pipe_handle, int64_t &h) {
   dali::Pipeline *pipeline = reinterpret_cast<dali::Pipeline *>(pipe_handle->pipe);
-  dali::Workspace *ws = reinterpret_cast<dali::Workspace *>(pipe_handle->ws);
   auto hx = pipeline->GetHorcruxes();
-  DALI_ENFORCE(hx.size() == 1 || hx.size()==0);
-  if (hx.size()==1) h = hx[0];
+  DALI_ENFORCE(hx.size() == 1 || hx.size() == 0);
+  if (hx.size() == 1) h = hx[0];
 }
 
 

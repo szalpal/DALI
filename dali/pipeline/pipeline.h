@@ -36,7 +36,7 @@
 #include "dali/pipeline/pipeline_output_desc.h"
 #include "dali/pipeline/operator/builtin/external_source.h"
 
-//to do remove
+// to do remove
 #include "dali/operators/input/video_input.h"
 
 
@@ -140,9 +140,10 @@ class DLL_PUBLIC Pipeline {
                            AccessOrder order = {}, ExtSrcSettingMode ext_src_setting_mode = {}) {
     // Note: we have 2 different Backends here - OperatorBackend and T's Backend (StorageBackend).
     // The StorageBackend is hidden under `T` type.
-    static_assert(std::is_same_v<T, TensorList<CPUBackend>> || std::is_same_v<T, TensorList<GPUBackend>>);
+    static_assert(std::is_same_v<T, TensorList<CPUBackend>> ||
+    std::is_same_v<T, TensorList<GPUBackend>>);
 
-    //to do uncomment
+    // to do uncomment
     {
       auto *source = dynamic_cast<ExternalSource<OperatorBackend> *>(op_ptr);
 //    DALI_ENFORCE(source != nullptr,
@@ -161,9 +162,6 @@ class DLL_PUBLIC Pipeline {
       }
     }
     DALI_FAIL("Input name '" + name + "' is not marked as an Input Operator.");
-
-
-
   }
 
   /**
@@ -179,7 +177,7 @@ class DLL_PUBLIC Pipeline {
   template <typename TL>
   inline void SetExternalInputHelper(const string &name, const TL &tl, AccessOrder order = {},
                                      ExtSrcSettingMode ext_src_setting_mode = {},
-                                     Horcrux horcrux=kEmptyHorcrux) {
+                                     Horcrux horcrux = kEmptyHorcrux) {
     bool is_cpu_node = true;
     OpNodeId node_id;
 
@@ -376,12 +374,14 @@ class DLL_PUBLIC Pipeline {
    * deadlock.
    */
   DLL_PUBLIC void Outputs(Workspace *ws);
+
+
   DLL_PUBLIC std::vector<Horcrux> GetHorcruxes() {
     std::vector<Horcrux> ret;
     for (auto so : stream_operators_) {
       auto h = so->GetHorcruxesBack();
       if (h.empty()) {
-        cout<<"Horcruxes empty"<<endl;
+        cout << "Horcruxes empty" << endl;
       } else {
         DALI_ENFORCE(h.size() == 1, "This should be 1 for now.");
         for (auto hx : h) {

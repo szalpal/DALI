@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include "dali/operators/input/video_input.h"
+#include <memory>
 
 namespace dali {
 
@@ -59,7 +60,6 @@ void VideoInput<CPUBackend>::RunImpl(Workspace &ws) {
     horcruxes_.pop();
     return_horcruxes_.emplace_back(h);
   }
-
 }
 
 
@@ -87,4 +87,4 @@ DALI_SCHEMA(experimental__inputs__Video)
 DALI_REGISTER_OPERATOR(experimental__inputs__Video, VideoInput<CPUBackend>, CPU);
 DALI_REGISTER_OPERATOR(experimental__inputs__Video, VideoInput<GPUBackend>, GPU);
 
-}
+}  // namespace dali

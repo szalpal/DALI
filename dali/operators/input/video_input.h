@@ -12,10 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef DALI_VIDEO_INPUT_H
-#define DALI_VIDEO_INPUT_H
+#ifndef DALI_OPERATORS_INPUT_VIDEO_INPUT_H_
+#define DALI_OPERATORS_INPUT_VIDEO_INPUT_H_
 
 #include <type_traits>
+#include <vector>
+#include <queue>
 #include "dali/operators/reader/loader/video/frames_decoder.h"
 #include "dali/operators/reader/loader/video/frames_decoder_gpu.h"
 #include "dali/pipeline/input/input_operator.h"
@@ -27,17 +29,21 @@
 namespace dali {
 
 template<typename Backend>
-using frames_decoder_t = std::conditional_t<std::is_same<Backend, CPUBackend>::value, FramesDecoder, FramesDecoderGpu>;
+using frames_decoder_t =
+        std::conditional_t<
+                std::is_same<Backend, CPUBackend>::value,
+                FramesDecoder,
+                FramesDecoderGpu
+        >;
 
 template<typename Backend, typename FramesDecoder = frames_decoder_t<Backend>>
 class VideoInput : public VideoDecoderBase<Backend, FramesDecoder>, public InputOperator<Backend> {
-
  public:
   explicit VideoInput(const OpSpec &spec) :
           InputOperator<Backend>(spec),
           frames_per_sequence_(spec.GetArgument<int>("frames_per_sequence")),
           device_id_(spec.GetArgument<int>("device_id")) {
-    cout<<"CTOR\n";
+    cout << "CTOR\n";
   }
 
 
@@ -45,9 +51,11 @@ class VideoInput : public VideoDecoderBase<Backend, FramesDecoder>, public Input
     return true;
   }
 
+
   void AssignHorcrux(int64_t horcrux) {
     horcruxes_.push(horcrux);
   }
+
 
   std::vector<int64_t> GetHorcruxesBack() {
     auto horcruxes = return_horcruxes_;
@@ -85,10 +93,10 @@ class VideoInput : public VideoDecoderBase<Backend, FramesDecoder>, public Input
   std::vector<int64_t> return_horcruxes_;
 
   int curr_frame_;
-  bool valid_=false;
+  bool valid_ = false;
   OutputDesc output_desc_;
 };
 
-}
+}  // namespace dali
 
-#endif //DALI_VIDEO_INPUT_H
+#endif  // DALI_OPERATORS_INPUT_VIDEO_INPUT_H_

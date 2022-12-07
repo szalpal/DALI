@@ -36,6 +36,9 @@
 #include "dali/pipeline/pipeline_output_desc.h"
 #include "dali/pipeline/operator/builtin/external_source.h"
 
+//to do remove
+#include "dali/operators/input/video_input.h"
+
 
 namespace dali {
 
@@ -57,6 +60,8 @@ namespace dali {
  */
 class DLL_PUBLIC Pipeline {
  public:
+  using Horcrux = int64_t;  // to do void* or something more generic
+  static constexpr Horcrux kEmptyHorcrux = 0;
   /**
    * @brief Creates a pipeline that will produce batches of size `batch_size`,
    * using `num_threads` worker threads on gpu `device_id`.
@@ -100,8 +105,8 @@ class DLL_PUBLIC Pipeline {
   }
 
   DLL_PUBLIC Pipeline(const string &serialized_pipe, int max_batch_size = -1, int num_threads = -1,
-                      int device_id = -1, bool pipelined_execution = true,
-                      int prefetch_queue_depth = 2, bool async_execution = true,
+                      int device_id = -1, bool pipelined_execution = false,
+                      int prefetch_queue_depth = 2, bool async_execution = false,
                       size_t bytes_per_sample_hint = 0, bool set_affinity = false,
                       int max_num_stream = -1, int default_cuda_stream_priority = 0,
                       int64_t seed = -1);
@@ -135,10 +140,30 @@ class DLL_PUBLIC Pipeline {
                            AccessOrder order = {}, ExtSrcSettingMode ext_src_setting_mode = {}) {
     // Note: we have 2 different Backends here - OperatorBackend and T's Backend (StorageBackend).
     // The StorageBackend is hidden under `T` type.
-    auto *source = dynamic_cast<ExternalSource<OperatorBackend> *>(op_ptr);
-    DALI_ENFORCE(source != nullptr,
-                 "Input name '" + name + "' is not marked as an external input.");
-    source->SetDataSource(tl, order, ext_src_setting_mode);
+    static_assert(std::is_same_v<T, TensorList<CPUBackend>> || std::is_same_v<T, TensorList<GPUBackend>>);
+
+    //to do uncomment
+    {
+      auto *source = dynamic_cast<ExternalSource<OperatorBackend> *>(op_ptr);
+//    DALI_ENFORCE(source != nullptr,
+//                 "Input name '" + name + "' is not marked as an Input Operator.");
+      // to do generalize
+      if (source != nullptr) {
+        source->SetDataSource(tl, order, ext_src_setting_mode);
+        return;
+      }
+    }
+    {
+      auto *source = dynamic_cast<VideoInput<OperatorBackend> *>(op_ptr);
+      if (source != nullptr) {
+        source->SetDataSource(tl, order);
+        return;
+      }
+    }
+    DALI_FAIL("Input name '" + name + "' is not marked as an Input Operator.");
+
+
+
   }
 
   /**
@@ -153,7 +178,8 @@ class DLL_PUBLIC Pipeline {
    */
   template <typename TL>
   inline void SetExternalInputHelper(const string &name, const TL &tl, AccessOrder order = {},
-                                     ExtSrcSettingMode ext_src_setting_mode = {}) {
+                                     ExtSrcSettingMode ext_src_setting_mode = {},
+                                     Horcrux horcrux=kEmptyHorcrux) {
     bool is_cpu_node = true;
     OpNodeId node_id;
 
@@ -178,6 +204,8 @@ class DLL_PUBLIC Pipeline {
     } else {
       SetDataSourceHelper<TL, GPUBackend>(name, tl, op_ptr, order, ext_src_setting_mode);
     }
+
+    AssignHorcrux(horcrux);
   }
 
 
@@ -196,7 +224,7 @@ class DLL_PUBLIC Pipeline {
   DLL_PUBLIC inline void SetExternalInput(
       const string &name, const TensorList<Backend> &tl, AccessOrder order = {}, bool sync = false,
       bool use_copy_kernel = false, ExtSrcNoCopyMode no_copy_mode = ExtSrcNoCopyMode::DEFAULT) {
-    SetExternalInputHelper(name, tl, order, {sync, use_copy_kernel, no_copy_mode});
+    SetExternalInputHelper(name, tl, order, {sync, use_copy_kernel, no_copy_mode}, 666);
   }
 
 
@@ -329,6 +357,7 @@ class DLL_PUBLIC Pipeline {
   void SetOutputDescs(const vector<std::pair<string /* name */, string /* device */>> &out_names);
   /** @} */
 
+
   /**
    * @brief Run the cpu portion of the pipeline.
    */
@@ -347,6 +376,21 @@ class DLL_PUBLIC Pipeline {
    * deadlock.
    */
   DLL_PUBLIC void Outputs(Workspace *ws);
+  DLL_PUBLIC std::vector<Horcrux> GetHorcruxes() {
+    std::vector<Horcrux> ret;
+    for (auto so : stream_operators_) {
+      auto h = so->GetHorcruxesBack();
+      if (h.empty()) {
+        cout<<"Horcruxes empty"<<endl;
+      } else {
+        DALI_ENFORCE(h.size() == 1, "This should be 1 for now.");
+        for (auto hx : h) {
+          ret.emplace_back(hx);
+        }
+      }
+    }
+    return ret;
+  }
 
   /**
    * @brief Fills the input device workspace with the output of the pipeline.
@@ -584,6 +628,22 @@ class DLL_PUBLIC Pipeline {
                                     const std::string &input_dev, const std::string &device,
                                     const std::string &output_dev);
 
+  void DiscoverStreamOperators() {
+    for (Index i = 0; i < graph_.NumOp(); i++) {
+      auto so = dynamic_cast<VideoInput<CPUBackend> *>(graph_.Node(i).op.get());
+      if (!so) continue;
+      stream_operators_.emplace_back(so);
+    }
+  }
+
+  void AssignHorcrux(Horcrux horcrux) {
+    for (auto so : stream_operators_) {
+      so->AssignHorcrux(horcrux);
+    }
+  }
+
+
+
   const int MAX_SEEDS = 1024;
 
   bool built_;
@@ -599,6 +659,7 @@ class DLL_PUBLIC Pipeline {
   int next_internal_logical_id_ = -1;
   QueueSizes prefetch_queue_depth_;
   bool enable_memory_stats_ = false;
+  std::vector<VideoInput<CPUBackend>*> stream_operators_;
 
   std::vector<int64_t> seed_;
   int original_seed_;

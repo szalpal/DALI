@@ -545,6 +545,9 @@ void Pipeline::Build(std::vector<PipelineOutputDesc> output_descs) {
 
   // Load the final graph into the executor
   executor_->Build(&graph_, outputs);
+
+  DiscoverStreamOperators();
+
   built_ = true;
 }
 

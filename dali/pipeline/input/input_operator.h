@@ -96,7 +96,7 @@ class InputOperator : public Operator<Backend>, virtual public BatchSizeProvider
 
 
   template<typename SrcBackend>
-  inline std::enable_if_t<!std::is_same<SrcBackend, Backend>::value>
+  std::enable_if_t<!std::is_same<SrcBackend, Backend>::value>
   ShareUserData(const TensorList<SrcBackend> &t, AccessOrder /* order = {}*/,
                 bool /* use_copy_kernel */) {
     DALI_FAIL(make_string("no_copy is supported only for the same data source device type "
@@ -109,7 +109,7 @@ class InputOperator : public Operator<Backend>, virtual public BatchSizeProvider
 
 
   template<typename SrcBackend>
-  inline std::enable_if_t<std::is_same<SrcBackend, Backend>::value &&
+  std::enable_if_t<std::is_same<SrcBackend, Backend>::value &&
                           std::is_same<SrcBackend, CPUBackend>::value>
   ShareUserData(const TensorList<SrcBackend> &batch, AccessOrder /* order = {}*/,
                 bool /*use_copy_kernel = false*/) {
@@ -140,7 +140,7 @@ class InputOperator : public Operator<Backend>, virtual public BatchSizeProvider
    *        contiguous buffer instead of cudaMemcpyAsync.
    */
   template<typename SrcBackend>
-  inline std::enable_if_t<std::is_same<SrcBackend, Backend>::value &&
+  std::enable_if_t<std::is_same<SrcBackend, Backend>::value &&
                           std::is_same<SrcBackend, GPUBackend>::value>
   ShareUserData(const TensorList<SrcBackend> &batch, AccessOrder order = {},
                 bool use_copy_kernel = false) {
@@ -174,7 +174,7 @@ class InputOperator : public Operator<Backend>, virtual public BatchSizeProvider
 
 
   template<typename SrcBackend, typename B = Backend>
-  inline std::enable_if_t<std::is_same<B, CPUBackend>::value>
+  std::enable_if_t<std::is_same<B, CPUBackend>::value>
   CopyUserData(const TensorList<SrcBackend> &batch,
                AccessOrder order, bool /* sync */, bool /* use_copy_kernel */) {
     std::list<uptr_tl_type> tl_elm;
@@ -202,7 +202,7 @@ class InputOperator : public Operator<Backend>, virtual public BatchSizeProvider
 
 
   template<typename SrcBackend, typename B = Backend>
-  inline std::enable_if_t<std::is_same<B, GPUBackend>::value>
+  std::enable_if_t<std::is_same<B, GPUBackend>::value>
   CopyUserData(const TensorList<SrcBackend> &batch,
                AccessOrder order, bool sync, bool use_copy_kernel) {
     std::list<uptr_cuda_event_type> copy_to_storage_event;
@@ -261,9 +261,9 @@ class InputOperator : public Operator<Backend>, virtual public BatchSizeProvider
    * @param target Where the data shall be injected.
    * @param tp TheadPool used to copy the data.
    */
-  void ForwardCurrentData(TensorList<CPUBackend> &target, ThreadPool &tp);
+  DLL_PUBLIC void ForwardCurrentData(TensorList<CPUBackend> &target, ThreadPool &tp);
 
-  void ForwardCurrentData(TensorList<GPUBackend> &target, cudaStream_t stream = nullptr);
+  DLL_PUBLIC void ForwardCurrentData(TensorList<GPUBackend> &target, cudaStream_t stream = nullptr);
 
 
   bool HasData() const {

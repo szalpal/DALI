@@ -18,3 +18,9 @@ collect_sources(DALI_SRCS PARENT_SCOPE)
 
 # C-API test use actual operators
 collect_test_sources(DALI_OPERATOR_TEST_SRCS PARENT_SCOPE)
+
+
+add_executable(dali_stream_test stream_api_test.cc)
+target_include_directories(dali_stream_test PUBLIC
+        ${PROJECT_SOURCE_DIR}/include)
+target_link_libraries(dali_stream_test dali dali_core dali_operators)

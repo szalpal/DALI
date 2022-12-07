@@ -135,7 +135,7 @@ class ExternalSource : public InputOperator<Backend> {
    * @brief Sets the data that should be passed out of the op on the next iteration.
    */
   template <typename SrcBackend>
-  inline void SetDataSource(const vector<Tensor<SrcBackend>> &vect_of_tensors,
+  void SetDataSource(const vector<Tensor<SrcBackend>> &vect_of_tensors,
                             AccessOrder order = {}, ExtSrcSettingMode ext_src_setting_mode = {}) {
     DeviceGuard g(device_id_);
     DomainTimeRange tr("[DALI][ExternalSource] SetDataSource", DomainTimeRange::kViolet);
@@ -152,7 +152,7 @@ class ExternalSource : public InputOperator<Backend> {
    * @brief Sets the data that should be passed out of the op on the next iteration.
    */
   template <typename SrcBackend>
-  inline void SetDataSource(const TensorList<SrcBackend> &tl, AccessOrder order = {},
+  void SetDataSource(const TensorList<SrcBackend> &tl, AccessOrder order = {},
                             ExtSrcSettingMode ext_src_setting_mode = {}) {
     DeviceGuard g(device_id_);
     DomainTimeRange tr("[DALI][ExternalSource] SetDataSource", DomainTimeRange::kViolet);

@@ -12,37 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#ifndef DALI_OPERATORS_DECODER_VIDEO_VIDEO_DECODER_BASE_H_
+#define DALI_OPERATORS_DECODER_VIDEO_VIDEO_DECODER_BASE_H_
+
 #include <vector>
 #include <memory>
 
 #include "dali/pipeline/operator/common.h"
-#include "dali/pipeline/operator/operator.h"
-
-#ifndef DALI_OPERATORS_DECODER_VIDEO_VIDEO_DECODER_BASE_H_
-#define DALI_OPERATORS_DECODER_VIDEO_VIDEO_DECODER_BASE_H_
 
 namespace dali {
 
 template <typename Backend, typename FramesDecoder>
-class DLL_PUBLIC VideoDecoderBase : public Operator<Backend> {
+class DLL_PUBLIC VideoDecoderBase {
  public:
   using InBackend = CPUBackend;
-  using OutBackend = std::conditional_t<std::is_same_v<Backend, CPUBackend>,
+  using OutBackend = std::conditional_t<std::is_same<Backend, CPUBackend>::value,
                                         CPUBackend,
                                         GPUBackend>;
-
-  explicit VideoDecoderBase(const OpSpec &spec)
-      : Operator<Backend>(spec) {}
-
-  ~VideoDecoderBase() override = default;
-
-  DISABLE_COPY_MOVE_ASSIGN(VideoDecoderBase);
-
-  USE_OPERATOR_MEMBERS();
-
-  bool CanInferOutputs() const override {
-    return true;
-  }
 
  protected:
   void ValidateInput(const Workspace &ws) {
@@ -59,6 +45,7 @@ class DLL_PUBLIC VideoDecoderBase : public Operator<Backend> {
   }
 
   TensorListShape<4> ReadOutputShape() {
+    //to do returns whole file shape, not subsequence
     TensorListShape<4> shape(frames_decoders_.size());
     for (size_t s = 0; s < frames_decoders_.size(); ++s) {
       TensorShape<4> sample_shape;
@@ -71,20 +58,61 @@ class DLL_PUBLIC VideoDecoderBase : public Operator<Backend> {
     return shape;
   }
 
+  TensorListShape<4> ReadOutputShape(int nframes, int batch_size) {
+    //to do returns whole file shape, not subsequence
+    TensorListShape<4> shape(batch_size);
+    for (size_t s = 0; s < batch_size; ++s) {
+      TensorShape<4> sample_shape;
+      sample_shape[0] = nframes;
+      sample_shape[1] = frames_decoders_[s]->Height();
+      sample_shape[2] = frames_decoders_[s]->Width();
+      sample_shape[3] = frames_decoders_[s]->Channels();
+      shape.set_tensor_shape(s, sample_shape);
+    }
+    return shape;
+  }
+
   /**
    * @brief Decode sample with index `idx` to `output` tensor.
    */
   void DecodeSample(SampleView<OutBackend> output, int64_t idx) {
-    auto &frames_decoder = *frames_decoders_[idx];
     int64_t num_frames = output.shape()[0];
+    DecodeFrames(output, idx, 0, num_frames);
+  }
+
+
+  /**
+   * to do
+   * @param output
+   * @param sample_idx
+   * @param start_idx
+   * @param num_frames
+   */
+  void DecodeFrames(SampleView<OutBackend> output, int64_t sample_idx, int64_t start_idx, int64_t num_frames) {
+    auto &frames_decoder = *frames_decoders_[sample_idx];
     int64_t frame_size = frames_decoder.FrameSize();
     uint8_t *output_data = output.template mutable_data<uint8_t>();
-    for (int f = 0; f < num_frames; ++f) {
+    for (int64_t f = 0; f < num_frames; ++f) {
       frames_decoder.ReadNextFrame(output_data + f * frame_size);
     }
   }
 
+
+  /**
+   * to do
+   * @param sample_idx
+   * @return
+   */
+  bool CanDecode(int64_t sample_idx) {
+    if (cnt >= 3) return false;
+    cnt++;
+    return true;
+//    return frames_decoders_[sample_idx]->NextFrameIdx() != -1;
+  }
+  int cnt=0;//to do remove
+
   std::vector<std::unique_ptr<FramesDecoder>> frames_decoders_;
+  std::vector<bool> is_valid_;//to do refactor
 };
 
 }  // namespace dali

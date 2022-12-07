@@ -91,8 +91,6 @@ Parameters
     Whether to execute the pipeline asynchronously.
     This makes :meth:`run` method
     run asynchronously with respect to the calling Python thread.
-    In order to synchronize with the pipeline one needs to call
-    :meth:`outputs` method.
 `bytes_per_sample` : int, optional, default = 0
     A hint for DALI for how much memory to use for its tensors.
 `set_affinity` : bool, optional, default = False
@@ -858,7 +856,7 @@ Parameters
             The name of the :class:`nvidia.dali.fn.external_source` node or a :class:`DataNode`
             object returned by a call to that ExternalSource.
 
-        data : an ndarray or DLPack or a list thereof
+        data : ndarray or DLPack or a list thereof
             The array(s) may be one of:
 
               * NumPy ndarray (CPU)
@@ -912,11 +910,13 @@ Parameters
         # Check for use of feed_input on an external_source operator that was
         # initialized with 'source'. This check makes sense only for fully Python-based
         # pipelines, and not deserialized ones
-        if not self._deserialized:
-            if next((op._callback is not None for op in self._ops if op.name == name), False):
-                raise RuntimeError(
-                    f"Cannot use `feed_input` on the external source '{name}' with a `source`"
-                    " argument specified.")
+
+        # to do uncomment and mofidy
+        # if not self._deserialized:
+        #     if next((op._callback is not None for op in self._ops if op.name == name), False):
+        #         raise RuntimeError(
+        #             f"Cannot use `feed_input` on the external source '{name}' with a `source`"
+        #             " argument specified.")
 
         self._feed_input(name, data, layout, cuda_stream, use_copy_kernel)
 

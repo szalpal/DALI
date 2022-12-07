@@ -194,7 +194,7 @@ void daliCreatePipeline(daliPipelineHandle *pipe_handle, const char *serialized_
   bool se = separated_execution != 0;
   auto pipeline =
       std::make_unique<dali::Pipeline>(std::string(serialized_pipeline, length), max_batch_size,
-                                       num_threads, device_id, true, prefetch_queue_depth, true);
+                                       num_threads, device_id, false, prefetch_queue_depth, false);
   pipeline->SetExecutionTypes(true, se, true);
   if (se) {
     pipeline->SetQueueSizes(cpu_prefetch_queue_depth, gpu_prefetch_queue_depth);
@@ -370,6 +370,14 @@ void daliOutput(daliPipelineHandle *pipe_handle) {
   dali::Pipeline *pipeline = reinterpret_cast<dali::Pipeline *>(pipe_handle->pipe);
   dali::Workspace *ws = reinterpret_cast<dali::Workspace *>(pipe_handle->ws);
   pipeline->Outputs(ws);
+}
+
+void daliOutputH(daliPipelineHandle *pipe_handle, int64_t& h) {
+  dali::Pipeline *pipeline = reinterpret_cast<dali::Pipeline *>(pipe_handle->pipe);
+  dali::Workspace *ws = reinterpret_cast<dali::Workspace *>(pipe_handle->ws);
+  auto hx = pipeline->GetHorcruxes();
+  DALI_ENFORCE(hx.size() == 1 || hx.size()==0);
+  if (hx.size()==1) h = hx[0];
 }
 
 

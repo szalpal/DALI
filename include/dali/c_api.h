@@ -375,6 +375,7 @@ DLL_PUBLIC void daliPrefetchSeparate(daliPipelineHandle *pipe_handle,
  * Releases previously returned buffers.
  */
 DLL_PUBLIC void daliOutput(daliPipelineHandle *pipe_handle);
+DLL_PUBLIC void daliOutputH(daliPipelineHandle *ph, int64_t& h);
 
 /**
  * @brief Wait until the output of the pipeline is ready.

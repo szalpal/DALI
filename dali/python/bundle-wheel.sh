@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/bash -ex
 #
 # Copyright (c) 2018-2024, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 #

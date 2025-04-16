@@ -323,3 +323,4 @@ echo "Finished compressing wheel"
 # clean up
 popd
 rm -rf $TMPDIR
+exit 0

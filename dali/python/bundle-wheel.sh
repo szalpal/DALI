@@ -144,13 +144,11 @@ DEPS_LIST=(
     "lib/libnvcv_types_d.so.0"
 )
 
-if [ "$BUNDLE_NVCOMP" = "YES" ]; then
-    DEPS_LIST+=(
-        "${DEPS_PATH}/cuda/lib64/libnvcomp.so.4"
-        "${DEPS_PATH}/cuda/lib64/libnvcomp_gdeflate.so"
-        "${DEPS_PATH}/cuda/lib64/libnvcomp_bitcomp.so"
-    )
-fi
+DEPS_LIST+=(
+    "${DEPS_PATH}/cuda/lib64/libnvcomp.so.4"
+    "${DEPS_PATH}/cuda/lib64/libnvcomp_gdeflate.so"
+    "${DEPS_PATH}/cuda/lib64/libnvcomp_bitcomp.so"
+)
 
 TMPDIR=$(mktemp -d)
 pushd $TMPDIR

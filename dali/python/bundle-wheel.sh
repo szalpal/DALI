@@ -50,7 +50,8 @@ OUTWHLNAME=${4:-$(basename $INWHL)}
 DEPS_PATH=${5:-/usr/local}
 OUTDIR=${6:-/wheelhouse}
 COMPRESSION=${7:-YES} # whether to compress the resulting wheel
-BUNDLE_NVCOMP=${8:-NO}
+BUNDLE_NVCOMP=${8:-YES}
+echo "BUNDLE_NVCOMP value $BUNDLE_NVCOMP"
 
 if [[ "$COMPRESSION" == "NO" ]]; then
     ZIP_FLAG="-0"

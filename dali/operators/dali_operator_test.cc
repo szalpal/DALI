@@ -33,17 +33,17 @@ void __dali_operator_test_force_tls_align_fun(void) {}
 #endif
 
 
-int main(int argc, char **argv) {
-  __dali_operator_test_force_tls_align_fun();
-  dali::DALIInit(dali::OpSpec("CPUAllocator"),
-                 dali::OpSpec("PinnedCPUAllocator"),
-                 dali::OpSpec("GPUAllocator"));
-  ::testing::InitGoogleTest(&argc, argv);
-
-  // Gets hold of the event listener list.
-  ::testing::TestEventListeners& listeners = testing::UnitTest::GetInstance()->listeners();
-  // Adds a listener to the end.  googletest takes the ownership.
-  listeners.Append(new dali::CudaFinalizeEventListener);
-
-  return RUN_ALL_TESTS();
-}
+//int main(int argc, char **argv) {
+//  __dali_operator_test_force_tls_align_fun();
+//  dali::DALIInit(dali::OpSpec("CPUAllocator"),
+//                 dali::OpSpec("PinnedCPUAllocator"),
+//                 dali::OpSpec("GPUAllocator"));
+//  ::testing::InitGoogleTest(&argc, argv);
+//
+//  // Gets hold of the event listener list.
+//  ::testing::TestEventListeners& listeners = testing::UnitTest::GetInstance()->listeners();
+//  // Adds a listener to the end.  googletest takes the ownership.
+//  listeners.Append(new dali::CudaFinalizeEventListener);
+//
+//  return RUN_ALL_TESTS();
+//}

@@ -18,3 +18,6 @@ collect_sources(DALI_SRCS PARENT_SCOPE)
 
 # C-API test use actual operators
 collect_test_sources(DALI_OPERATOR_TEST_SRCS PARENT_SCOPE)
+
+add_executable(leaktest.bin leak_test.cc)
+target_link_libraries(leaktest.bin dali dali_core dali_kernels dali_operators)
